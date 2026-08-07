@@ -1,7 +1,9 @@
 package com.authenticationservice.service.impl;
 
+import com.authenticationservice.dto.request.LoginRequest;
 import com.authenticationservice.dto.request.RegisterRequest;
 import com.authenticationservice.dto.response.ApiResponse;
+import com.authenticationservice.dto.response.LoginResponse;
 import com.authenticationservice.entity.Role;
 import com.authenticationservice.entity.User;
 import com.authenticationservice.enums.RoleType;
@@ -50,5 +52,10 @@ public class AuthServiceImpl implements AuthService {
         userRepository.save(user);
 
         return new ApiResponse("User registered Successful");
+    }
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        return null;
     }
 }
