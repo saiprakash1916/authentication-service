@@ -20,6 +20,11 @@ spring:
 server:
   port: 8080
 
+jwt:
+  secret: Lx0BK6OL9Z9RwPcP0FVnY/1aA3cqDSEjK8xqdPJ8Qew=
+  expiration: 900000
+  refresh-expiration: 604800000
+
 logging:
   level:
     org.springframework.security: DEBUG
