@@ -5,24 +5,26 @@ import com.authenticationservice.enums.RoleType;
 import com.authenticationservice.repository.RoleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
-@Component
+import java.util.Arrays;
+
+@Configuration
 @RequiredArgsConstructor
-public class DataInitializer implements CommandLineRunner {
+public class DataInitializer {
 
     private final RoleRepository roleRepository;
 
-    @Override
-    public void run(String... args) throws Exception {
-        for (RoleType roleType : RoleType.values()){
-            if (!roleRepository.existsByName(roleType)){
-                Role role = Role.builder()
-                        .name(roleType)
-                        .build();
-
-                roleRepository.save(role);
-            }
-        }
+    @Bean
+    CommandLineRunner initializeRoles(){
+        return args -> Arrays.stream(RoleType.values())
+                .filter(roleType -> roleRepository.findByName(roleType).isEmpty())
+                .forEach(roleType -> roleRepository.save(
+                        Role.builder()
+                                .name(roleType)
+                                .build()
+                ));
     }
 }

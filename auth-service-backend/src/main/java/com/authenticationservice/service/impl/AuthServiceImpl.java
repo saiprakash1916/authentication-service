@@ -10,8 +10,13 @@ import com.authenticationservice.enums.RoleType;
 import com.authenticationservice.exception.EmailAlreadyExistsException;
 import com.authenticationservice.repository.RoleRepository;
 import com.authenticationservice.repository.UserRepository;
+import com.authenticationservice.security.jwt.JwtService;
 import com.authenticationservice.service.interfaces.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,13 +29,15 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
 
     @Override
     public ApiResponse register(RegisterRequest request) {
 
         //Check if email already exits or not
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new EmailAlreadyExistsException("Email already exits");
+            throw new EmailAlreadyExistsException("Email already exists");
         }
 
         // Get Default role
@@ -38,7 +45,6 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new RuntimeException("Default Role not found"));
 
         // Create User
-
         User user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
@@ -51,11 +57,30 @@ public class AuthServiceImpl implements AuthService {
 
         userRepository.save(user);
 
-        return new ApiResponse("User registered Successful");
+        return ApiResponse.builder()
+                .success(true)
+                .message("User registered Successfully")
+                .data(null)
+                .build();
     }
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        return null;
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        String token = jwtService.generateToken(userDetails);
+
+        return LoginResponse.builder()
+                .accessToken(token)
+                .tokenType("Bearer")
+                .expiresIn(900000L)
+                .build();
     }
 }
